@@ -9,7 +9,7 @@ import lxml.html
 from requests import Session
 
 import civic_scraper
-from civic_scraper import base, utils
+from civic_scraper import base
 from civic_scraper.base.asset import Asset, AssetCollection
 from civic_scraper.base.cache import Cache
 
@@ -210,25 +210,10 @@ class CivicClerkSite(base.Site):
 
         ac = AssetCollection()
 
-        parsed_start_date = None
-        if start_date:
-            parsed_start_date = utils.parse_date(start_date)
-
-        parsed_end_date = None
-        if end_date:
-            parsed_end_date = utils.parse_date(end_date)
-
         for event in self.events():
             committee_name = event.xpath("./td[contains(@id, '_3')]//text()")[1].strip()
             str_datetime = event.xpath("./td[contains(@id, '_4')]//text()")[0].strip()
             meeting_datetime = datetime.strptime(str_datetime, "%m/%d/%Y %I:%M %p")
-
-            # Filter by date range
-            if parsed_start_date and meeting_datetime.date() < parsed_start_date.date():
-                continue
-            if parsed_end_date and meeting_datetime.date() > parsed_end_date.date():
-                continue
-
             meeting_id_num, meeting_id = self.get_meeting_id(event)
 
             event_url = f"{self.base_url}/Web/DocumentFrame.aspx?id={meeting_id_num}&mod=-1&player_tab=-2"
