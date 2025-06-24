@@ -50,3 +50,4 @@ setuptools-scm = "*"
 pytz = "*"
 sphinx = "*"
 exceptiongroup = "*"
+civic-scraper = {file = ".", editable = true}

@@ -99,5 +99,13 @@ class Runner:
     def _get_site_class_name(self, url):
         if re.search(r"portal\.civicclerk\.com", url):
             return "CivicClerkSite"
+        # Adding the original pub- pattern as well for completeness,
+        # though portal.* should catch the problematic URL.
+        if re.search(r"pub-.*\.civicclerk\.com", url):
+            return "CivicClerkSite"
         if re.search(r"(civicplus|AgendaCenter)", url):
             return "CivicPlusSite"
+        # Fallback or error if no site is matched
+        # For now, let's raise an error to make it explicit if a URL isn't matched.
+        # This is better than returning None and getting a TypeError in getattr.
+        raise ScraperError(f"No scraper found for URL: {url}")
