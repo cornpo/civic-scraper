@@ -206,17 +206,36 @@ class CivicClerkSite(base.Site):
                 + ";GB|20;12|PAGERONCLICK3|PBN;"
             )
 
-    def scrape(self, download=True):
+    def scrape(self, start_date, end_date, **kwargs):
+        """
+        Scrapes meeting data between start_date and end_date.
 
+        Args:
+            start_date (str): The start date in YYYY-MM-DD format.
+            end_date (str): The end date in YYYY-MM-DD format.
+            **kwargs: Additional keyword arguments (currently unused).
+
+        Returns:
+            AssetCollection: A collection of scraped assets.
+        """
         ac = AssetCollection()
+        start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
 
         for event in self.events():
             committee_name = event.xpath("./td[contains(@id, '_3')]//text()")[1].strip()
             str_datetime = event.xpath("./td[contains(@id, '_4')]//text()")[0].strip()
             meeting_datetime = datetime.strptime(str_datetime, "%m/%d/%Y %I:%M %p")
+            meeting_date_obj = meeting_datetime.date()
+
+            # Filter by date
+            if not (start_date_obj <= meeting_date_obj <= end_date_obj):
+                continue
+
             meeting_id_num, meeting_id = self.get_meeting_id(event)
 
             event_url = f"{self.base_url}/Web/DocumentFrame.aspx?id={meeting_id_num}&mod=-1&player_tab=-2"
+            # TODO: Consider caching this response if self.cache is available and configured
             event_response = self.session.get(event_url)
 
             agenda_items = self.get_agenda_items(event_response.text)
@@ -229,12 +248,5 @@ class CivicClerkSite(base.Site):
                 for a in assets:
                     ac.append(a)
 
-        if download:
-            asset_dir = Path(self.cache.path, "assets")
-            asset_dir.mkdir(parents=True, exist_ok=True)
-            for asset in ac:
-                if asset.url:
-                    dir_str = str(asset_dir)
-                    asset.download(target_dir=dir_str, session=self.session)
-
+        # Downloading logic is removed as it's handled by the Runner
         return ac

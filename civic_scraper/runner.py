@@ -97,5 +97,20 @@ class Runner:
         return getattr(mod, class_name)
 
     def _get_site_class_name(self, url):
-        if re.search(r"(civicplus|AgendaCenter)", url):
+        if re.search(r"(civicplus|AgendaCenter)", url, re.IGNORECASE):
             return "CivicPlusSite"
+        elif re.search(r"civicclerk\.com", url, re.IGNORECASE):
+            return "CivicClerkSite"
+        # Add other platform checks here as elif blocks
+        # Example:
+        # elif re.search(r"granicus\.com", url, re.IGNORECASE):
+        #     return "GranicusSite"
+        # elif re.search(r"legistar\.com", url, re.IGNORECASE):
+        #     return "LegistarSite"
+        else:
+            # Fallback or error for unknown URL patterns
+            # For now, let's raise an error or return a default/None
+            # depending on desired behavior for unhandled URLs.
+            # This part needs to be defined based on project requirements.
+            # For example, to make it explicit:
+            raise ScraperError(f"Could not determine site platform for URL: {url}")
