@@ -49,7 +49,7 @@ articles, and such.
 Our [official docs] use reStructuredText and Sphinx. To contribute documentation without completing the full repo setup (only required for code logic):
 
 1. Fork and clone this repo
-2. Create a simple virtual environment: `python3 -m venv civic-scraper-env` 
+2. Create a simple virtual environment: `python3 -m venv civic-scraper-env`
 3. Activate your new virtual env: `source civic-scraper-env/bin/activate`
 4. Install requirements for documentation: `pip install -r docs/requirements.txt`
 5. Create a branch for your doc updates and start writing!
@@ -67,11 +67,11 @@ Look through the GitHub issues for features. Anything tagged with "enhancement" 
 
 ## Get Started!
 
-Ready to contribute a bug fix or feature? Here's how to set up `civic-scraper` for local development. 
+Ready to contribute a bug fix or feature? Here's how to set up `civic-scraper` for local development.
 
 Note: While there are many ways to setup a virtual environment in Python, we recommend using Pipenv in order to keep your setup aligned with the continuous deployment configuration.
 
-### Fork and clone the `civic-scraper` repo 
+### Fork and clone the `civic-scraper` repo
 
 1. Fork the `civic-scraper` repo on GitHub.
 
@@ -81,9 +81,9 @@ Note: While there are many ways to setup a virtual environment in Python, we rec
    $ git clone git@github.com:your_name_here/civic-scraper.git
    ```
 
-### Prep your development environment 
+### Prep your development environment
 
-3. Make sure you have Python 3.9 installed: 
+3. Make sure you have Python 3.9 installed:
     - You can check this by running:
 
     ```bash
@@ -113,7 +113,7 @@ Note: While there are many ways to setup a virtual environment in Python, we rec
 
 💡 Pro Tips
 
-- If you ever get weird errors when setting up your virtual environment, try removing and recreating it: 
+- If you ever get weird errors when setting up your virtual environment, try removing and recreating it:
 
    ```bash
    pipenv --rm
@@ -127,7 +127,7 @@ Note: While there are many ways to setup a virtual environment in Python, we rec
 
    - Add `--dev` to the above if the new package is just for development (like pytest)
 
-## Making changes 
+## Making changes
 
 6. Create a branch for local development on your fork:
 
@@ -141,13 +141,13 @@ Note: While there are many ways to setup a virtual environment in Python, we rec
 
 When you're done making changes, you'll want to check that your changes pass linting requirements (using flake8) and the tests, including testing other Python versions (using tox).
 
-7. Run style checks on everything in `civic_scraper/` and `tests/`: 
-   
+7. Run style checks on everything in `civic_scraper/` and `tests/`:
+
    ```bash
    pipenv run flake8 civic_scraper tests
    ```
 
-8. Run tests: 
+8. Run tests:
 
    ```bash
    pipenv run pytest
