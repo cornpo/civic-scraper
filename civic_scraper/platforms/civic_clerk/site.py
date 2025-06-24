@@ -137,32 +137,63 @@ class CivicClerkSite(base.Site):
         payload = {}
         payload["__EVENTARGUMENT"] = None
         payload["__EVENTTARGET"] = None
-        (payload["__VIEWSTATE"],) = tree.xpath("//input[@name='__VIEWSTATE']/@value")
-        (payload["__VIEWSTATEGENERATOR"],) = tree.xpath(
-            "//input[@name='__VIEWSTATEGENERATOR']/@value"
-        )
-        (payload["__EVENTVALIDATION"],) = tree.xpath(
-            "//input[@name='__EVENTVALIDATION']/@value"
-        )
+
+        # Attempt to extract ASP.NET state fields, defaulting to None if not found
+        viewstate_nodes = tree.xpath("//input[@name='__VIEWSTATE']/@value")
+        payload["__VIEWSTATE"] = viewstate_nodes[0] if viewstate_nodes else None
+
+        viewstate_gen_nodes = tree.xpath("//input[@name='__VIEWSTATEGENERATOR']/@value")
+        payload["__VIEWSTATEGENERATOR"] = viewstate_gen_nodes[0] if viewstate_gen_nodes else None
+
+        event_validation_nodes = tree.xpath("//input[@name='__EVENTVALIDATION']/@value")
+        payload["__EVENTVALIDATION"] = event_validation_nodes[0] if event_validation_nodes else None
+
+        # If critical fields for pagination are missing, pagination is likely to fail.
+        # For now, we'll let it proceed and fail on the POST request if the server rejects it,
+        # or if callback_state cannot be determined.
+        if payload["__VIEWSTATE"] is None:
+            # Log a warning or raise a more specific error if desired
+            # For example: logger.warning(f"__VIEWSTATE not found on {self.url}. Pagination may fail.")
+            # Depending on how critical these are, we might choose to return early here.
+            # For now, let the process continue to see if other parts can function or fail informatively.
+            pass
+
+
         payload["__CALLBACKID"] = callback_id
 
         # To get the next page of results from the AJAX endpoint,
         # it's basically a post request with a 'PBN' argument. But,
         # we also have to pass around the callback state that
         # the endpoint expects
-        (event_callback_source,) = tree.xpath(
-            """//script[contains(text(), "var dxo = new ASPxClientGridView('{}');")]/text()""".format(
-                callback_id.replace("$", "_")
-            )
+        event_callback_source_xpath = """//script[contains(text(), "var dxo = new ASPxClientGridView('{}');")]/text()""".format(
+            callback_id.replace("$", "_")
         )
+        event_callback_source_nodes = tree.xpath(event_callback_source_xpath)
+        event_callback_source = event_callback_source_nodes[0] if event_callback_source_nodes else None
 
-        callback_state = demjson.decode(
-            re.search(
+        if not event_callback_source:
+            # If the script containing the callback state is not found, pagination cannot proceed.
+            # Log this and return, as further operations in this method will fail.
+            # logger.warning(f"CivicClerk: Callback state script not found for {callback_id} on {self.url}. Pagination aborted.")
+            return # Stop further processing in _paginate for this callback_id
+
+        try:
+            match = re.search(
                 r"^dxo\.stateObject = \((?P<body>.*)\);$",
                 event_callback_source,
                 re.MULTILINE,
-            ).group("body")
-        )
+            )
+            if not match:
+                # logger.warning(f"CivicClerk: Could not parse callback state from script for {callback_id} on {self.url}. Pagination aborted.")
+                return # Stop further processing
+            callback_state_json = match.group("body")
+            callback_state = demjson.decode(callback_state_json)
+        except demjson.JSONDecodeError:
+            # logger.error(f"CivicClerk: Failed to decode JSON for callback state for {callback_id} on {self.url}. Content: {callback_state_json}")
+            return # Stop further processing
+        except Exception as e:
+            # logger.error(f"CivicClerk: Error processing callback_state for {callback_id} on {self.url}: {e}")
+            return # Stop further processing
 
         # You may wonder why we are encoding the callback_state back to a string
         # right after we decoded it from a string.
