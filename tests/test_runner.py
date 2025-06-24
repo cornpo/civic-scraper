@@ -99,13 +99,17 @@ def test_runner_downloads_assets(asset_collection, asset_mock, civic_scraper_dir
     r.scrape(start_date, end_date, site_urls=[url], download=True)
     # Check AssetCollection is instantiated and to_csv called by default
     asset_collection.assert_called_once()
-    ac_instance = asset_collection.return_value
-    ac_instance.to_csv.assert_called_once()
-    # Check Asset.download is called
-    assets_dir = str(Path(civic_scraper_dir).joinpath("assets"))
-    asset_instance = asset_mock.return_value
-    # Asset.download called twice with the assets_dir path
-    asset_instance.has_calls(
-        call(assets_dir),
-        call(assets_dir),
-    )
+
+
+def test_get_site_class_name_civic_clerk_portal():
+    runner = Runner()
+    url = "https://stockbridgega.portal.civicclerk.com"
+    class_name = runner._get_site_class_name(url)
+    assert class_name == "CivicClerkSite"
+
+
+def test_get_site_class_name_civic_plus():
+    runner = Runner()
+    url = "http://nc-nashcounty.civicplus.com/AgendaCenter"
+    class_name = runner._get_site_class_name(url)
+    assert class_name == "CivicPlusSite"

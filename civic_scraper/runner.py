@@ -97,5 +97,7 @@ class Runner:
         return getattr(mod, class_name)
 
     def _get_site_class_name(self, url):
+        if re.search(r"portal\.civicclerk\.com", url):
+            return "CivicClerkSite"
         if re.search(r"(civicplus|AgendaCenter)", url):
             return "CivicPlusSite"
